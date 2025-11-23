@@ -15,9 +15,11 @@ const messageRoutes = require('./routes/message.routes');
 const progressRoutes = require('./routes/progress.routes');
 const hardwareRoutes = require('./routes/hardware.routes');
 const statsRoutes = require('./routes/stats.routes');
+const adminRoutes = require('./routes/admin');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
+const authMiddleware = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,7 +33,13 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',    
+    'http://192.168.2.2:5173',   // ⭐ Web dashboard URLs
+  ],
+  credentials: true
+}));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,6 +62,9 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/hardware', hardwareRoutes);
 app.use('/api/stats', statsRoutes);
+
+// Register admin routes (AFTER auth middleware is defined)
+app.use('/api/admin', adminRoutes); 
 
 // Error handling
 app.use(errorHandler);
