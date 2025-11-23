@@ -1,0 +1,111 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  password          String
+  name              String
+  role              String   @default("patient") // patient, expert, admin
+  hospital          String?
+  medicalRecordNo   String?
+  phoneNumber       String?
+  assignedExpertId  Int?
+  assignedExpert    User?    @relation("ExpertPatients", fields: [assignedExpertId], references: [id], onDelete: SetNull)
+  patients          User[]   @relation("ExpertPatients")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  progress          UserProgress[]
+  schedules         Schedule[]
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
+  hardwareData      HardwareData[]
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  
+  videos      Video[]
+}
+
+model Video {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String?
+  categoryId      Int
+  category        Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  videoUrl        String
+  thumbnailUrl    String?
+  duration        Int      // in seconds
+  difficultyLevel String   @default("beginner") // beginner, intermediate, advanced
+  instructions    String?
+  uploadDate      DateTime @default(now())
+  
+  // Relations
+  progress        UserProgress[]
+  schedules       Schedule[]
+}
+
+model UserProgress {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId         Int
+  video           Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  completionDate  DateTime @default(now())
+  notes           String?
+  rating          Int?     // 1-5 stars
+  
+  @@unique([userId, videoId, completionDate])
+}
+
+model Schedule {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId       Int
+  video         Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  scheduledDate DateTime
+  completed     Boolean  @default(false)
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+  
+  @@index([userId, scheduledDate])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId Int
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  message    String
+  isRead     Boolean  @default(false)
+  timestamp  DateTime @default(now())
+  
+  @@index([receiverId, isRead])
+}
+
+model HardwareData {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionDate DateTime @default(now())
+  dataType    String   // accelerometer, gyroscope, etc
+  dataValue   String   // JSON string
+  notes       String?
+}
