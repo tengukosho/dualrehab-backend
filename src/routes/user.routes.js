@@ -175,4 +175,28 @@ router.put('/:id/assign-expert', authMiddleware, requireRole('admin'), async (re
   }
 });
 
+// Get contact info (public - for patients to see expert/admin details)
+router.get('/contact/:id', authMiddleware, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(req.params.id) },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        hospital: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
