@@ -36,7 +36,7 @@ if (!fs.existsSync(uploadDir)) {
 app.use(cors({
   origin: [
     'http://localhost:5173',    
-    'http://192.168.2.2:5173',   // ⭐ Web dashboard URLs
+    'http://192.168.2.2:5173',   
   ],
   credentials: true
 }));
