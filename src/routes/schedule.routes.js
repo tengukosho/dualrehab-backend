@@ -5,7 +5,6 @@ const { authMiddleware, requireRole } = require('../middleware/auth');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get user's schedules
 router.get('/', authMiddleware, async (req, res, next) => {
   try {
     const { startDate, endDate, completed } = req.query;
@@ -23,6 +22,19 @@ router.get('/', authMiddleware, async (req, res, next) => {
     if (completed !== undefined) {
       where.completed = completed === 'true';
     }
+
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    await prisma.schedule.deleteMany({
+      where: {
+        userId: req.user.id,
+        completed: true,
+        scheduledDate: {
+          lt: oneDayAgo
+        }
+      }
+    });
 
     const schedules = await prisma.schedule.findMany({
       where,
@@ -51,7 +63,6 @@ router.get('/', authMiddleware, async (req, res, next) => {
   }
 });
 
-// Get schedule by ID
 router.get('/:id', authMiddleware, async (req, res, next) => {
   try {
     const schedule = await prisma.schedule.findUnique({
@@ -75,7 +86,6 @@ router.get('/:id', authMiddleware, async (req, res, next) => {
   }
 });
 
-// Create schedule
 router.post('/', authMiddleware, async (req, res, next) => {
   try {
     const { videoId, scheduledDate, userId } = req.body;
@@ -101,7 +111,6 @@ router.post('/', authMiddleware, async (req, res, next) => {
   }
 });
 
-// Mark schedule as completed
 router.put('/:id/complete', authMiddleware, async (req, res, next) => {
   try {
     const schedule = await prisma.schedule.findUnique({
@@ -127,7 +136,6 @@ router.put('/:id/complete', authMiddleware, async (req, res, next) => {
       }
     });
 
-    // Also create progress entry
     await prisma.userProgress.create({
       data: {
         userId: req.user.id,
@@ -142,7 +150,6 @@ router.put('/:id/complete', authMiddleware, async (req, res, next) => {
   }
 });
 
-// Delete schedule
 router.delete('/:id', authMiddleware, async (req, res, next) => {
   try {
     const schedule = await prisma.schedule.findUnique({

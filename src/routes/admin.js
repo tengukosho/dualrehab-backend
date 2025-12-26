@@ -145,10 +145,11 @@ router.get('/schedules', adminOnly, async (req, res) => {
 router.put('/users/:id', adminOnly, async (req, res) => {
   try {
     const { id } = req.params;
-    const { assignedExpertId, role, hospital, phoneNumber } = req.body;
+    const { name, assignedExpertId, role, hospital, phoneNumber } = req.body;
     
     const updateData = {};
     if (assignedExpertId !== undefined) updateData.assignedExpertId = assignedExpertId;
+    if (name !== undefined) updateData.name = name;
     if (role !== undefined) updateData.role = role;
     if (hospital !== undefined) updateData.hospital = hospital;
     if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;

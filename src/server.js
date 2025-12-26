@@ -75,6 +75,6 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📁 Uploads directory: ${uploadDir}`);
+  console.log(`ðŸš€ Server running on http://localhost:${PORT}`);
+  console.log(`ðŸ“ Uploads directory: ${uploadDir}`);
 });
